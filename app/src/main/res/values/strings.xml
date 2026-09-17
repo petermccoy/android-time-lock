@@ -20,7 +20,7 @@
     <string name="accessibility_disabled_button">Open settings</string>
 
     <string name="app_list_title">Locked apps</string>
-    <string name="app_list_show_system_apps">Show system apps</string>
+    <string name="app_list_show_system_apps">Show apps without a launcher icon</string>
     <string name="active_unlocks_title">Currently unlocked</string>
     <string name="active_unlocks_remaining">%1$s — %2$d min left</string>
 </resources>

@@ -2,7 +2,6 @@ package com.petermccoy.applock.ui
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
@@ -77,7 +76,7 @@ fun AppListScreen(
     }
 
     val visibleApps = remember(apps, showSystemApps) {
-        if (showSystemApps) apps else apps.filterNot { it.isSystemApp }
+        if (showSystemApps) apps else apps.filter { it.isLaunchable }
     }
     val labelsByPackage = remember(apps) { apps.associateBy({ it.packageName }, { it.label }) }
 
@@ -252,7 +251,7 @@ private fun loadInstalledApps(context: Context): List<InstalledAppInfo> {
                 packageName = appInfo.packageName,
                 label = pm.getApplicationLabel(appInfo).toString(),
                 icon = pm.getApplicationIcon(appInfo).toBitmap().asImageBitmap(),
-                isSystemApp = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0,
+                isLaunchable = pm.getLaunchIntentForPackage(appInfo.packageName) != null,
             )
         }
         .sortedBy { it.label.lowercase() }
