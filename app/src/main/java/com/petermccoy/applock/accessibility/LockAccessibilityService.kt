@@ -1,8 +1,12 @@
 package com.petermccoy.applock.accessibility
 
 import android.accessibilityservice.AccessibilityService
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.content.ContextCompat
 import com.petermccoy.applock.data.LockedAppsRepository
 import com.petermccoy.applock.session.SessionState
 import com.petermccoy.applock.ui.LockOverlayActivity
@@ -14,10 +18,35 @@ import com.petermccoy.applock.ui.LockOverlayActivity
 class LockAccessibilityService : AccessibilityService() {
 
     private lateinit var lockedAppsRepository: LockedAppsRepository
+    private var screenOffReceiverRegistered = false
+
+    private val screenOffReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            SessionState.clearUntilScreenOff()
+        }
+    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         lockedAppsRepository = LockedAppsRepository(applicationContext)
+
+        if (!screenOffReceiverRegistered) {
+            ContextCompat.registerReceiver(
+                this,
+                screenOffReceiver,
+                IntentFilter(Intent.ACTION_SCREEN_OFF),
+                ContextCompat.RECEIVER_NOT_EXPORTED,
+            )
+            screenOffReceiverRegistered = true
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (screenOffReceiverRegistered) {
+            unregisterReceiver(screenOffReceiver)
+            screenOffReceiverRegistered = false
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {

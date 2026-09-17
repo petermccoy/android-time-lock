@@ -147,7 +147,7 @@ private fun AccessibilityPromptBanner(onOpenAccessibilitySettings: () -> Unit) {
 
 @Composable
 private fun ActiveUnlocksSection(
-    activeUnlocks: Map<String, Long>,
+    activeUnlocks: Map<String, Long?>,
     labelsByPackage: Map<String, String>,
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -156,15 +156,14 @@ private fun ActiveUnlocksSection(
             style = MaterialTheme.typography.titleSmall,
         )
         activeUnlocks.forEach { (packageName, remainingMs) ->
-            val remainingMinutes = ((remainingMs + 59_999L) / 60_000L).toInt()
-            Text(
-                text = stringResource(
-                    R.string.active_unlocks_remaining,
-                    labelsByPackage[packageName] ?: packageName,
-                    remainingMinutes,
-                ),
-                style = MaterialTheme.typography.bodySmall,
-            )
+            val label = labelsByPackage[packageName] ?: packageName
+            val statusText = if (remainingMs == null) {
+                stringResource(R.string.active_unlocks_until_screen_off, label)
+            } else {
+                val remainingMinutes = ((remainingMs + 59_999L) / 60_000L).toInt()
+                stringResource(R.string.active_unlocks_remaining, label, remainingMinutes)
+            }
+            Text(text = statusText, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -210,7 +209,7 @@ private fun rememberAccessibilityServiceEnabled(context: Context): State<Boolean
 }
 
 @Composable
-private fun rememberActiveUnlocks(): State<Map<String, Long>> {
+private fun rememberActiveUnlocks(): State<Map<String, Long?>> {
     return produceState(initialValue = SessionState.activeUnlocks()) {
         while (true) {
             value = SessionState.activeUnlocks()

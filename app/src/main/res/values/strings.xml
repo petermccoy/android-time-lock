@@ -8,6 +8,7 @@
 
     <string name="duration_picker_title">Stay unlocked for</string>
     <string name="duration_picker_confirm">Confirm</string>
+    <string name="duration_until_screen_off">Until screen off</string>
     <string name="duration_5_min">5 minutes</string>
     <string name="duration_10_min">10 minutes</string>
     <string name="duration_15_min">15 minutes</string>
@@ -23,4 +24,5 @@
     <string name="app_list_show_system_apps">Show apps without a launcher icon</string>
     <string name="active_unlocks_title">Currently unlocked</string>
     <string name="active_unlocks_remaining">%1$s — %2$d min left</string>
+    <string name="active_unlocks_until_screen_off">%1$s — until screen off</string>
 </resources>

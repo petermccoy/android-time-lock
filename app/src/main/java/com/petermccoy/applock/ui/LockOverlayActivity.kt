@@ -65,7 +65,7 @@ class LockOverlayActivity : FragmentActivity() {
                 when (stage) {
                     Stage.AUTHENTICATING -> LockScreenBackground(appLabel = targetAppLabel())
                     Stage.PICK_DURATION -> UnlockDurationPicker(
-                        initialMinutes = prefs.getInt(KEY_LAST_DURATION_MINUTES, DEFAULT_DURATION_MINUTES),
+                        initialSelection = unlockDurationFromPrefValue(prefs.getString(KEY_LAST_DURATION, null)),
                         onConfirm = ::onDurationConfirmed,
                     )
                 }
@@ -119,9 +119,12 @@ class LockOverlayActivity : FragmentActivity() {
         biometricPrompt.authenticate(promptInfo)
     }
 
-    private fun onDurationConfirmed(minutes: Int) {
-        prefs.edit().putInt(KEY_LAST_DURATION_MINUTES, minutes).apply()
-        SessionState.unlock(targetPackage, minutes * 60_000L)
+    private fun onDurationConfirmed(duration: UnlockDuration) {
+        prefs.edit().putString(KEY_LAST_DURATION, duration.toPrefValue()).apply()
+        when (duration) {
+            is UnlockDuration.Fixed -> SessionState.unlock(targetPackage, duration.minutes * 60_000L)
+            UnlockDuration.UntilScreenOff -> SessionState.unlockUntilScreenOff(targetPackage)
+        }
         finish()
     }
 
@@ -143,8 +146,7 @@ class LockOverlayActivity : FragmentActivity() {
     companion object {
         const val EXTRA_TARGET_PACKAGE = "extra_target_package"
         private const val PREFS_NAME = "applock_overlay_prefs"
-        private const val KEY_LAST_DURATION_MINUTES = "last_unlock_duration_minutes"
-        private const val DEFAULT_DURATION_MINUTES = 5
+        private const val KEY_LAST_DURATION = "last_unlock_duration"
     }
 }
 
