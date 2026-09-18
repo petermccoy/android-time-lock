@@ -7,12 +7,11 @@ import android.content.Context
  */
 class LockedAppsRepository(context: Context) {
 
-    private val appContext = context.applicationContext
-    private val prefs = appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val prefs = context.applicationContext
+        .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    /** AppLock always locks itself, so opening it requires auth too; it's not user-toggleable. */
     fun isLocked(packageName: String): Boolean =
-        packageName == appContext.packageName || getAllLocked().contains(packageName)
+        getAllLocked().contains(packageName)
 
     fun setLocked(packageName: String, locked: Boolean) {
         val updated = getAllLocked().toMutableSet()
