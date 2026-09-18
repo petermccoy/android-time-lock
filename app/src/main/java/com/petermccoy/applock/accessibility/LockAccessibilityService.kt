@@ -54,7 +54,16 @@ class LockAccessibilityService : AccessibilityService() {
         if (!::lockedAppsRepository.isInitialized) return
 
         val packageName = event.packageName?.toString() ?: return
-        if (packageName == applicationContext.packageName) return
+
+        // AppLock locks itself too (see LockedAppsRepository.isLocked), so its own window
+        // state changes reach here. Only skip the lock screen showing itself, to avoid
+        // relaunching it on top of itself in a loop; MainActivity coming to the foreground
+        // should still be gated normally.
+        if (packageName == applicationContext.packageName &&
+            event.className?.toString() == LockOverlayActivity::class.java.name
+        ) {
+            return
+        }
 
         if (lockedAppsRepository.isLocked(packageName) && !SessionState.isUnlocked(packageName)) {
             val intent = Intent(this, LockOverlayActivity::class.java).apply {
