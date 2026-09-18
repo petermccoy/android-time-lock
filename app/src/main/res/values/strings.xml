@@ -20,6 +20,10 @@
     <string name="accessibility_disabled_body">AppLock needs the accessibility service turned on to detect when a locked app is opened.</string>
     <string name="accessibility_disabled_button">Open settings</string>
 
+    <string name="screen_pinning_title">Handing your phone to someone else?</string>
+    <string name="screen_pinning_body">No app, including this one, can stop someone from reaching Settings once your phone is unlocked. Android\'s built-in screen pinning can: open the app you\'re handing over, go to Recents, tap its icon, then Pin. While pinned, nothing else — including Settings — is reachable until it\'s unpinned.</string>
+    <string name="screen_pinning_button">Open security settings</string>
+
     <string name="app_list_title">Locked apps</string>
     <string name="app_list_show_system_apps">Show apps without a launcher icon</string>
     <string name="active_unlocks_title">Currently unlocked</string>

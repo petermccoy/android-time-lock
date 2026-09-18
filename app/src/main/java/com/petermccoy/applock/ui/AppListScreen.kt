@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,6 +61,7 @@ import kotlinx.coroutines.withContext
 fun AppListScreen(
     lockedAppsRepository: LockedAppsRepository,
     onOpenAccessibilitySettings: () -> Unit,
+    onOpenSecuritySettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -92,6 +94,8 @@ fun AppListScreen(
             if (activeUnlocks.isNotEmpty()) {
                 ActiveUnlocksSection(activeUnlocks = activeUnlocks, labelsByPackage = labelsByPackage)
             }
+
+            ScreenPinningTipCard(onOpenSecuritySettings = onOpenSecuritySettings)
 
             Row(
                 modifier = Modifier
@@ -130,7 +134,7 @@ private fun AccessibilityPromptBanner(onOpenAccessibilitySettings: () -> Unit) {
                 text = stringResource(R.string.accessibility_disabled_title),
                 style = MaterialTheme.typography.titleMedium,
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.accessibility_disabled_body),
                 style = MaterialTheme.typography.bodyMedium,
@@ -140,6 +144,29 @@ private fun AccessibilityPromptBanner(onOpenAccessibilitySettings: () -> Unit) {
                 modifier = Modifier.padding(top = 12.dp),
             ) {
                 Text(stringResource(R.string.accessibility_disabled_button))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScreenPinningTipCard(onOpenSecuritySettings: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.screen_pinning_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.screen_pinning_body),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Button(
+                onClick = onOpenSecuritySettings,
+                modifier = Modifier.padding(top = 12.dp),
+            ) {
+                Text(stringResource(R.string.screen_pinning_button))
             }
         }
     }

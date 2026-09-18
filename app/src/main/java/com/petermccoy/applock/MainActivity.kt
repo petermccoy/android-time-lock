@@ -40,6 +40,9 @@ class MainActivity : FragmentActivity() {
                         onOpenAccessibilitySettings = {
                             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
                         },
+                        onOpenSecuritySettings = {
+                            startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
+                        },
                     )
                 } else {
                     LockScreenBackground(appLabel = getString(R.string.app_name))
