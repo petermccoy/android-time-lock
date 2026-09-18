@@ -19,6 +19,7 @@ class LockAccessibilityService : AccessibilityService() {
 
     private lateinit var lockedAppsRepository: LockedAppsRepository
     private var screenOffReceiverRegistered = false
+    private var lastForegroundPackage: String? = null
 
     private val screenOffReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -26,9 +27,19 @@ class LockAccessibilityService : AccessibilityService() {
         }
     }
 
+    private val expiryListener = SessionState.ExpiryListener { packageName ->
+        // Only interrupt if the app that just timed out is still what's on screen; if the
+        // user already left it, the normal foreground-change check below will re-lock it
+        // the next time they come back to it.
+        if (packageName == lastForegroundPackage) {
+            launchLockOverlay(packageName)
+        }
+    }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         lockedAppsRepository = LockedAppsRepository(applicationContext)
+        SessionState.setExpiryListener(expiryListener)
 
         if (!screenOffReceiverRegistered) {
             ContextCompat.registerReceiver(
@@ -43,6 +54,7 @@ class LockAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        SessionState.setExpiryListener(null)
         if (screenOffReceiverRegistered) {
             unregisterReceiver(screenOffReceiver)
             screenOffReceiverRegistered = false
@@ -54,15 +66,21 @@ class LockAccessibilityService : AccessibilityService() {
         if (!::lockedAppsRepository.isInitialized) return
 
         val packageName = event.packageName?.toString() ?: return
+        lastForegroundPackage = packageName
+
         if (packageName == applicationContext.packageName) return
 
         if (lockedAppsRepository.isLocked(packageName) && !SessionState.isUnlocked(packageName)) {
-            val intent = Intent(this, LockOverlayActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                putExtra(LockOverlayActivity.EXTRA_TARGET_PACKAGE, packageName)
-            }
-            startActivity(intent)
+            launchLockOverlay(packageName)
         }
+    }
+
+    private fun launchLockOverlay(packageName: String) {
+        val intent = Intent(this, LockOverlayActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            putExtra(LockOverlayActivity.EXTRA_TARGET_PACKAGE, packageName)
+        }
+        startActivity(intent)
     }
 
     override fun onInterrupt() {

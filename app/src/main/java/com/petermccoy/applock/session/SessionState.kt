@@ -1,5 +1,7 @@
 package com.petermccoy.applock.session
 
+import android.os.Handler
+import android.os.Looper
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -9,8 +11,22 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object SessionState {
 
+    /** Notified when a fixed-duration unlock's timer runs out. */
+    fun interface ExpiryListener {
+        fun onUnlockExpired(packageName: String)
+    }
+
     private val unlockedUntilMillis = ConcurrentHashMap<String, Long>()
     private val unlockedUntilScreenOff = ConcurrentHashMap.newKeySet<String>()
+    private val pendingExpiries = ConcurrentHashMap<String, Runnable>()
+    private val handler = Handler(Looper.getMainLooper())
+
+    @Volatile
+    private var expiryListener: ExpiryListener? = null
+
+    fun setExpiryListener(listener: ExpiryListener?) {
+        expiryListener = listener
+    }
 
     fun isUnlocked(packageName: String): Boolean {
         if (unlockedUntilScreenOff.contains(packageName)) return true
@@ -18,13 +34,27 @@ object SessionState {
         return System.currentTimeMillis() < until
     }
 
+    /** Unlocks [packageName] for [durationMs] and schedules [ExpiryListener] to fire the moment it runs out. */
     fun unlock(packageName: String, durationMs: Long) {
         unlockedUntilScreenOff.remove(packageName)
-        unlockedUntilMillis[packageName] = System.currentTimeMillis() + durationMs
+        val expiresAt = System.currentTimeMillis() + durationMs
+        unlockedUntilMillis[packageName] = expiresAt
+
+        pendingExpiries.remove(packageName)?.let { handler.removeCallbacks(it) }
+        val expiryRunnable = Runnable {
+            pendingExpiries.remove(packageName)
+            // Only fire if this is still the current unlock, not one superseded by a newer call.
+            if (unlockedUntilMillis[packageName] == expiresAt) {
+                expiryListener?.onUnlockExpired(packageName)
+            }
+        }
+        pendingExpiries[packageName] = expiryRunnable
+        handler.postDelayed(expiryRunnable, durationMs)
     }
 
     /** Unlocks [packageName] with no expiry until the next [clearUntilScreenOff] call. */
     fun unlockUntilScreenOff(packageName: String) {
+        pendingExpiries.remove(packageName)?.let { handler.removeCallbacks(it) }
         unlockedUntilMillis.remove(packageName)
         unlockedUntilScreenOff.add(packageName)
     }
