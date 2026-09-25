@@ -62,6 +62,7 @@ fun AppListScreen(
     lockedAppsRepository: LockedAppsRepository,
     onOpenAccessibilitySettings: () -> Unit,
     onOpenSecuritySettings: () -> Unit,
+    onOpenOverlaySettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -70,7 +71,8 @@ fun AppListScreen(
     var lockedPackages by remember { mutableStateOf(lockedAppsRepository.getAllLocked()) }
     var showSystemApps by remember { mutableStateOf(false) }
 
-    val accessibilityEnabled by rememberAccessibilityServiceEnabled(context)
+    val accessibilityEnabled by rememberStateRefreshedOnResume { isAccessibilityServiceEnabled(context) }
+    val overlayPermissionGranted by rememberStateRefreshedOnResume { Settings.canDrawOverlays(context) }
     val activeUnlocks by rememberActiveUnlocks()
 
     LaunchedEffect(Unit) {
@@ -89,6 +91,10 @@ fun AppListScreen(
         Column(modifier = Modifier.padding(padding)) {
             if (!accessibilityEnabled) {
                 AccessibilityPromptBanner(onOpenAccessibilitySettings = onOpenAccessibilitySettings)
+            }
+
+            if (!overlayPermissionGranted) {
+                OverlayPermissionBanner(onOpenOverlaySettings = onOpenOverlaySettings)
             }
 
             if (activeUnlocks.isNotEmpty()) {
@@ -144,6 +150,29 @@ private fun AccessibilityPromptBanner(onOpenAccessibilitySettings: () -> Unit) {
                 modifier = Modifier.padding(top = 12.dp),
             ) {
                 Text(stringResource(R.string.accessibility_disabled_button))
+            }
+        }
+    }
+}
+
+@Composable
+private fun OverlayPermissionBanner(onOpenOverlaySettings: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.overlay_disabled_title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.overlay_disabled_body),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Button(
+                onClick = onOpenOverlaySettings,
+                modifier = Modifier.padding(top = 12.dp),
+            ) {
+                Text(stringResource(R.string.overlay_disabled_button))
             }
         }
     }
@@ -219,14 +248,15 @@ private fun AppRow(
     }
 }
 
+/** Re-evaluates [compute] on every ON_RESUME, for state that can change out from under us in Settings. */
 @Composable
-private fun rememberAccessibilityServiceEnabled(context: Context): State<Boolean> {
-    val state = remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
+private fun rememberStateRefreshedOnResume(compute: () -> Boolean): State<Boolean> {
+    val state = remember { mutableStateOf(compute()) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                state.value = isAccessibilityServiceEnabled(context)
+                state.value = compute()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

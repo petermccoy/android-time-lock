@@ -1,6 +1,7 @@
 package com.petermccoy.applock
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.compose.setContent
@@ -42,6 +43,14 @@ class MainActivity : FragmentActivity() {
                         },
                         onOpenSecuritySettings = {
                             startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS))
+                        },
+                        onOpenOverlaySettings = {
+                            startActivity(
+                                Intent(
+                                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                    Uri.parse("package:$packageName"),
+                                )
+                            )
                         },
                     )
                 } else {

@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 import com.petermccoy.applock.data.LockedAppsRepository
+import com.petermccoy.applock.overlay.TapBlockerOverlay
 import com.petermccoy.applock.session.SessionState
 import com.petermccoy.applock.ui.LockOverlayActivity
 
@@ -77,6 +78,10 @@ class LockAccessibilityService : AccessibilityService() {
     }
 
     private fun launchLockOverlay(packageName: String) {
+        // Cover the app immediately, before the real overlay Activity has had time to
+        // launch and gain focus. LockOverlayActivity clears this once it's actually resumed.
+        TapBlockerOverlay.show(applicationContext)
+
         val intent = Intent(this, LockOverlayActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtra(LockOverlayActivity.EXTRA_TARGET_PACKAGE, packageName)

@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.petermccoy.applock.R
+import com.petermccoy.applock.overlay.TapBlockerOverlay
 import com.petermccoy.applock.session.SessionState
 import com.petermccoy.applock.ui.theme.AppLockTheme
 
@@ -70,11 +71,16 @@ class LockOverlayActivity : FragmentActivity() {
         targetPackage = newTarget
         stage = Stage.AUTHENTICATING
         promptRequested = true
+        // This instance was already resumed and won't get another onResume callback,
+        // so clear the blocker for the new target here too.
+        TapBlockerOverlay.hide()
         showBiometricPrompt()
     }
 
     override fun onResume() {
         super.onResume()
+        // We've now actually gained focus; the raw tap-blocking view is no longer needed.
+        TapBlockerOverlay.hide()
         if (stage == Stage.AUTHENTICATING && !promptRequested) {
             promptRequested = true
             showBiometricPrompt()

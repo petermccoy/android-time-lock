@@ -4,6 +4,15 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <!--
+      Lets the accessibility service draw a fast, opaque blocking view the instant a
+      locked app is detected, before LockOverlayActivity itself has had time to launch
+      and gain focus - see TapBlockerOverlay. Requires a manual "display over other apps"
+      grant; the lock flow degrades gracefully (just the existing Activity-based gate,
+      with its inherent race window) if this isn't granted.
+    -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!--
       Android 11+ hides other installed apps from PackageManager queries by default
       (package visibility). AppLock needs to see launchable apps to offer them in the
       lock list, so declare visibility into that set rather than requesting the much
