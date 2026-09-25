@@ -1,6 +1,7 @@
 package com.petermccoy.applock.accessibility
 
 import android.accessibilityservice.AccessibilityService
+import android.app.ActivityOptions
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -80,7 +81,10 @@ class LockAccessibilityService : AccessibilityService() {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             putExtra(LockOverlayActivity.EXTRA_TARGET_PACKAGE, packageName)
         }
-        startActivity(intent)
+        // Skip the enter transition (normally ~300ms) so the overlay takes over as fast
+        // as possible, shrinking the window where a tap can still land on the app beneath it.
+        val noAnimation = ActivityOptions.makeCustomAnimation(this, 0, 0)
+        startActivity(intent, noAnimation.toBundle())
     }
 
     override fun onInterrupt() {
