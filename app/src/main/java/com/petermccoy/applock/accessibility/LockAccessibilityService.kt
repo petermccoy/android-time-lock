@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.content.ContextCompat
 import com.petermccoy.applock.data.LockedAppsRepository
+import com.petermccoy.applock.overlay.CountdownOverlay
 import com.petermccoy.applock.overlay.TapBlockerOverlay
 import com.petermccoy.applock.session.SessionState
 import com.petermccoy.applock.ui.LockOverlayActivity
@@ -70,16 +71,27 @@ class LockAccessibilityService : AccessibilityService() {
         val packageName = event.packageName?.toString() ?: return
         lastForegroundPackage = packageName
 
-        if (packageName == applicationContext.packageName) return
+        if (packageName == applicationContext.packageName) {
+            CountdownOverlay.hide()
+            return
+        }
 
         if (lockedAppsRepository.isLocked(packageName) && !SessionState.isUnlocked(packageName)) {
             launchLockOverlay(packageName)
+            return
+        }
+
+        if (lockedAppsRepository.isLocked(packageName)) {
+            CountdownOverlay.show(applicationContext, packageName)
+        } else {
+            CountdownOverlay.hide()
         }
     }
 
     private fun launchLockOverlay(packageName: String) {
         // Cover the app immediately, before the real overlay Activity has had time to
         // launch and gain focus. LockOverlayActivity clears this once it's actually resumed.
+        CountdownOverlay.hide()
         TapBlockerOverlay.show(applicationContext)
 
         val intent = Intent(this, LockOverlayActivity::class.java).apply {

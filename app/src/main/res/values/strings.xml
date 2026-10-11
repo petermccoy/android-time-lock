@@ -21,7 +21,7 @@
     <string name="accessibility_disabled_button">Open settings</string>
 
     <string name="overlay_disabled_title">Allow AppLock to display over other apps</string>
-    <string name="overlay_disabled_body">This lets AppLock cover a locked app the instant it opens, closing the brief gap where a fast tap can land before the lock screen fully appears. The lock still works without it, just with that gap.</string>
+    <string name="overlay_disabled_body">This lets AppLock cover a locked app the instant it opens, closing the brief gap where a fast tap can land before the lock screen fully appears, and shows a small countdown while a timed unlock is running. The lock still works without it, just without those.</string>
     <string name="overlay_disabled_button">Open settings</string>
 
     <string name="screen_pinning_title">Handing your phone to someone else?</string>

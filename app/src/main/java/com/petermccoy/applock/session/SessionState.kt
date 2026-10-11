@@ -64,6 +64,13 @@ object SessionState {
         unlockedUntilScreenOff.clear()
     }
 
+    /** Remaining ms for a fixed-duration unlock, or null if not unlocked, expired, or unlocked until screen off. */
+    fun remainingMillis(packageName: String): Long? {
+        val until = unlockedUntilMillis[packageName] ?: return null
+        val remaining = until - System.currentTimeMillis()
+        return if (remaining > 0) remaining else null
+    }
+
     /** Packages currently unlocked, mapped to remaining unlock time in ms, or null if unlocked until screen off. */
     fun activeUnlocks(): Map<String, Long?> {
         val now = System.currentTimeMillis()
